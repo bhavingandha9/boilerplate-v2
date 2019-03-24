@@ -252,11 +252,13 @@ class User {
           })
         }
         data.eUserStatus = 'd'
-        return data.save()
-      }).then(data => {
-        return res.status(status.OK).jsonp({
-          status: jsonStatus.OK,
-          message: messages[req.userLanguage].user_remove_succ
+        data.save().then(data => {
+          return res.status(status.OK).jsonp({
+            status: jsonStatus.OK,
+            message: messages[req.userLanguage].user_remove_succ
+          })
+        }).catch(error => {
+          return catchError('User.remove', error, req, res)
         })
       }).catch(error => {
         return catchError('User.remove', error, req, res)

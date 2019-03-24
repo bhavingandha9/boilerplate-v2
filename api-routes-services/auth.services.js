@@ -82,7 +82,7 @@ class Auth {
       }
 
       const body = _.pick(req.body, ['sEmail', 'sPassword'])
-      body.sEmail = body.sEmail.toLoweCase()
+      body.sEmail = body.sEmail.toLowerCase()
       userModel.findOne({ sEmail: body.sEmail }).then(user => {
         if (!user) {
           return res.status(status.NotFound).jsonp({
@@ -163,7 +163,7 @@ class Auth {
       }
 
       const body = _.pick(req.body, ['sLogin', 'sPassword', 'sPushToken'])
-      body.sLogin = body.sLogin.toLoweCase()
+      body.sLogin = body.sLogin.toLowerCase()
 
       userModel.aggregate([
         {
@@ -250,11 +250,13 @@ class Auth {
         data.eUserStatus = 'y'
         data.sVerificationToken = null
 
-        return data.save()
-      }).then(() => {
-        return res.status(status.OK).jsonp({
-          status: jsonStatus.OK,
-          message: messages[req.userLanguage].user_verified_succ
+        data.save().then(() => {
+          return res.status(status.OK).jsonp({
+            status: jsonStatus.OK,
+            message: messages[req.userLanguage].user_verified_succ
+          })
+        }).catch(error => {
+          return catchError('Auth.mailVerification', error, req, res)
         })
       }).catch(error => {
         return catchError('Auth.mailVerification', error, req, res)
@@ -337,7 +339,7 @@ class Auth {
         })
       }
 
-      userModel.findOne({ sEmail: req.body.sEmail.toLoweCase() }).then(user => {
+      userModel.findOne({ sEmail: req.body.sEmail.toLowerCase() }).then(user => {
         if (!user) {
           return res.status(status.NotFound).jsonp({
             status: jsonStatus.NotFound,
@@ -439,28 +441,34 @@ class Auth {
     }
   }
 
+  // render reset password view for user
   async reset(req, res) {
     try {
       jwt.verify(req.params.sVerificationToken, config.JWT_SECRET, (err, data) => {
         if (err || !data) {
-          res.render('resetpassword', {
+          return res.render('token_expire', {
+            CONTACT_EMAIL: config.CONTACT_EMAIL,
+            SITE_NAME: config.SITE_NAME,
+            SITE_LOGO: `${config.MAIL_HOST_LINK}/${config.SITE_IMAGE}`
+          })
+        }
+        userModel.findOne({ sVerificationToken: req.params.sVerificationToken }).then(validUser => {
+          if (!validUser) {
+            return res.render('token_expire', {
+              CONTACT_EMAIL: config.CONTACT_EMAIL,
+              SITE_NAME: config.SITE_NAME,
+              SITE_LOGO: `${config.MAIL_HOST_LINK}/${config.SITE_IMAGE}`
+            })
+          }
+          return res.render('resetpassword', {
+            SITE_NAME: config.SITE_NAME,
+            SITE_LOGO: `${config.MAIL_HOST_LINK}/${config.SITE_IMAGE}`,
             title: 'Reset password',
             sVerificationToken: req.params.sVerificationToken
           })
-        }
-        userModel
-          .findOne({ sVerificationToken: req.params.sVerificationToken })
-          .then(validUser => {
-            if (!validUser) return res.render('token_expire', { SITE_NAME: config.SITE_NAME })
-
-            res.render('resetpassword', {
-              title: 'Reset password',
-              sVerificationToken: req.params.sVerificationToken
-            })
-          })
-          .catch(error => {
-            return catchError('Auth.reset', error, req, res)
-          })
+        }).catch(error => {
+          return catchError('Auth.reset', error, req, res)
+        })
       })
     } catch (error) {
       return catchError('Auth.forgotPasswordMail', error, req, res)
@@ -485,6 +493,7 @@ class Auth {
     })
   }
 
+  // render the expired link view
   async linkTimeout(req, res) {
     res.render('token_expire', { SITE_NAME: config.SITE_NAME })
   }
