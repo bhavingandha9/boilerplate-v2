@@ -1,0 +1,145 @@
+
+.form-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+  .form-control-placeholder {
+  position: absolute;
+  top: 0;
+  padding: 7px 0 0 13px;
+  transition: all 200ms;
+  opacity: 0.5;
+  font-size: 12px;
+  }
+  .form-control:focus + .form-control-placeholder,
+  .form-control:valid + .form-control-placeholder {
+  font-size: 75%;
+  transform: translate3d(0, -110%, 0);
+  opacity: 0.5;
+  }
+  .appDesc{
+  font-size: 13px;
+  }
+  .appTitle{
+  font-size: 24px;
+  font-weight:400;
+  }
+  .supTxt{
+  font-size: 16px;
+  }
+  .saveBtnCss{
+  background-color: #20cf61;
+  color: #fff;
+  outline: none;
+  border: none;
+  padding: 13px 24px;
+  border-radius: 25px;
+  }
+  .saveBtnCss:hover,.saveBtnCss:focus,.saveBtnCss:active {
+  color: #fff;
+  outline:none !important;
+  box-shadow:none !important;
+  }
+  .inputCss,.inputCss:focus{
+  border: navajowhite;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(0,0,0,0.3);
+  border-radius: 0px;
+  border-bottom-color: #f5e1e7;
+  }
+  .appImg{
+  width: 200px;
+  display: block;
+  margin: 0 auto;
+  }
+  .passwordChangeRes{
+  font-size: 17px;
+  color: rgba(0,0,0,0.5);
+  margin: 14px 0px;
+  }
+  .margin-t-10{
+  margin-top:10px;
+  }
+  .margin-t-30{
+  margin-top:30px;
+  }
+  
+  .padding-r-0{
+  padding-right: 0px;
+  }
+  .padding-l-0{
+  padding-left: 0px;
+  }
+  .padding-b-64{
+  padding-bottom: 64px;
+  }
+  .font-s-24{
+  font-size: 24px;
+  }
+  .font-s-16{
+  font-size: 16px;
+  }
+  .font-s-13{
+  font-size: 13px;
+  }
+  .font-w-400{
+  font-weight: 400;
+  }
+  /* media */
+  @media (min-width:768px) and (max-width:991px){
+  .appTitle{
+  font-size: 16px;
+  }
+  .supTxt{
+  font-size: 10px;
+  }
+  .appDesc{
+  font-size: 12px;
+  }
+  .appHead{
+  padding-bottom: 56px;
+  }
+  }
+  @media(max-width:1200px) and (min-width:768px){
+  .form-container{
+  margin-left:30px;
+  }
+  }
+  
+  @media(min-width:668px) and (max-width:699){
+  .inputCss{
+  width: 92%;
+  }
+  }
+  @media(min-width:700px) and (max-width:768px){
+  .inputCss{
+  width: 80%;
+  }
+  }
+  @media(min-width:758px) and (max-width:769px){
+  .appHead {
+  padding-bottom: 98px;
+  }
+  }
+  @media(max-width:768px){
+  .appTitle {
+  font-size: 18px;
+  }
+  .saveBtnCss{
+  margin-top: 25px;
+  }
+  .form-container {
+  margin-left: 30px;
+  }
+  }
+  @media(max-width:430px){
+  .smallDevice{
+  width: 50% !important;
+  padding-left: 0px;
+  }
+  }
+  .passIsNotvalid{
+  color: #ff1b1b
+  }
+  
+  

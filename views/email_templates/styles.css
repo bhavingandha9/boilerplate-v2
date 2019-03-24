@@ -1,0 +1,145 @@
+.form-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  .form-control-placeholder {
+    position: absolute;
+    top: 0;
+    padding: 7px 0 0 13px;
+    transition: all 200ms;
+    opacity: 0.5;
+    font-size: 12px;
+  }
+  .form-control:focus + .form-control-placeholder,
+  .form-control:valid + .form-control-placeholder {
+    font-size: 75%;
+    transform: translate3d(0, -110%, 0);
+    opacity: 0.5;
+  }
+  .bgImg{
+      background-image: url('./img/bbp_icon.png');
+      background-size: cover;
+  }
+  .appHead{
+      background: #a72f66;
+      color:#fff;
+      padding-bottom: 64px;
+  }
+  .appDesc{
+      font-size: 13px;
+  }
+  .appTitle{
+    font-size: 24px;
+    font-weight:400
+  }
+  .supTxt{
+    font-size: 16px;
+  }
+  .btnCss{
+    background-color: #e91e63;
+    color: #fff;
+    outline: none;
+    border: none;
+    padding: 13px 24px;
+    border-radius: 25px;
+  }
+  .loginBtnCss{
+    background-color:transparent;
+    color:rgb(50, 123, 199);
+    outline: none;
+    border: none;
+    padding: 13px 24px;
+    border-radius: 25px;
+  }
+  .btnCss:hover,.btnCss:focus,.btnCss:active {
+    color: #fff;;
+    outline:none !important;
+    box-shadow:none !important;
+}
+.inputCss,.inputCss:focus{
+    border: navajowhite;
+    box-shadow: none;
+    border-bottom: 1px solid rgba(0,0,0,0.3);
+    border-radius: 0px;
+    border-bottom-color: #e91e63;
+}
+.appImg{
+    width: 200px;
+    height: 218px;
+}
+.form-container{
+    margin-left:20px;
+}
+.margin-t-10{
+    margin-top:10px ;
+}
+.margin-t-30{
+    margin-top:30px;
+}
+
+.padding-r-0{
+    padding-right: 0px;
+}
+.padding-l-0{
+    padding-left: 0px;
+}
+.padding-b-64{
+    padding-bottom: 64px;
+}
+.font-s-24{
+    font-size: 24px
+}
+.font-s-16{
+    font-size: 16px
+}
+.font-s-13{
+    font-size: 13px
+}
+.font-w-400{
+    font-weight: 400;
+}
+/* media */
+@media (min-width:768px) and (max-width:991px){
+    .appTitle{
+        font-size: 16px;
+    }
+    .supTxt{
+        font-size: 10px;
+    }
+    .appDesc{
+        font-size: 12px;
+    }
+    .appHead{
+        padding-bottom: 56px;
+    }
+}
+@media(max-width:1200px) and (min-width:768px){
+    .form-container{
+        margin-left:30px;
+    }
+}
+@media(min-width:1200px){
+    .form-container{
+        margin-left:20px;
+    }
+}
+@media(min-width:1200px){
+    .form-container{
+        margin-left:20px;
+    }
+}
+@media(min-width:668px) and (max-width:699){
+    .inputCss{
+        width: 92%;
+    }
+}
+@media(min-width:700px) and (max-width:768px){
+    .inputCss{
+        width: 80%;
+    }
+}
+@media(min-width:758px) and (max-width:769px){
+    .appHead {
+        padding-bottom: 98px;
+    }
+}

@@ -1,0 +1,10 @@
+This file is for key things to mention for other developers.
+
+
+
+Things to do:
+- * route
+- email templates
+- s3 bucket or local upload true/false
+- remove the unwanted data in reponse (password tokens etc.)
+- trim
