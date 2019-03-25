@@ -26,16 +26,16 @@ const isAdminAuthenticated = (req, res, next) => {
           })
         }
 
-        if (user.eUserType === 'admin' && user.eUserStatus === 'y') {
+        if (user.eType === 'admin' && user.eStatus === 'y') {
           req._id = user._id
           req.user = user
           return next(null, null)
-        } else if (user.eUserStatus === 'b' || user.eUserStatus === 'd') {
+        } else if (user.eStatus === 'b' || user.eStatus === 'd') {
           return res.status(status.Unauthorized).jsonp({
             status: jsonStatus.Unauthorized,
             message: messages[req.userLanguage].user_blocked
           })
-        } else if (user.eUserStatus === 'n') {
+        } else if (user.eStatus === 'n') {
           return res.status(status.Unauthorized).jsonp({
             status: jsonStatus.Unauthorized,
             message: messages[req.userLanguage].user_not_verified
@@ -77,12 +77,12 @@ const isUserAuthenticated = (req, res, next) => {
             message: messages[req.userLanguage].err_unauthorized
           })
         }
-        if (user.eUserStatus === 'b' || user.eUserStatus === 'd') {
+        if (user.eStatus === 'b' || user.eStatus === 'd') {
           return res.status(status.Unauthorized).jsonp({
             status: jsonStatus.Unauthorized,
             message: messages[req.userLanguage].user_blocked
           })
-        } else if (user.eUserStatus === 'n') {
+        } else if (user.eStatus === 'n') {
           return res.status(status.Unauthorized).jsonp({
             status: jsonStatus.Unauthorized,
             message: messages[req.userLanguage].user_not_verified

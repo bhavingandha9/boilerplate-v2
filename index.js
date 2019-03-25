@@ -32,7 +32,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(expressValidator())
-
+app.set('view engine', 'ejs')
 /**
  * mongoose connection (url from config/env)
  */

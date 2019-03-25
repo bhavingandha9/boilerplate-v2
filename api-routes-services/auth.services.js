@@ -91,21 +91,21 @@ class Auth {
           })
         }
 
-        if (user.eUserStatus === 'b') {
+        if (user.eStatus === 'b') {
           return res.status(status.Forbidden).jsonp({
             status: jsonStatus.Forbidden,
             message: messages[req.userLanguage].user_blocked
           })
         }
 
-        if (user.eUserStatus === 'n') {
+        if (user.eStatus === 'n') {
           return res.status(status.Forbidden).jsonp({
             status: jsonStatus.Forbidden,
             message: messages[req.userLanguage].user_not_verified
           })
         }
 
-        if (user.eUserType !== 'admin') {
+        if (user.eType !== 'admin') {
           return res.status(status.Forbidden).jsonp({
             status: jsonStatus.Forbidden,
             message: messages[req.userLanguage].user_not_admin
@@ -247,7 +247,7 @@ class Auth {
           })
         }
 
-        data.eUserStatus = 'y'
+        data.eStatus = 'y'
         data.sVerificationToken = null
 
         data.save().then(() => {
@@ -286,37 +286,27 @@ class Auth {
       req.checkBody('sOldPassword', messages[req.userLanguage].req_old_password).notEmpty()
       req.checkBody('sNewPassword', messages[req.userLanguage].req_new_password).notEmpty()
       req.checkBody('sNewRetypedPassword', messages[req.userLanguage].req_new_retyped_password).notEmpty()
-      userModel.findById(req.user._id).then(user => {
-        if (!user) {
-          return res.status(status.NotFound).jsonp({
-            status: jsonStatus.NotFound,
-            message: messages[req.userLanguage].user_not_found
-          })
-        }
 
-        if (!bcrypt.compareSync(req.body.sOldPassword, user.sPassword)) {
-          return res.status(status.BadRequest).jsonp({
-            status: jsonStatus.BadRequest,
-            message: messages[req.userLanguage].wrong_old_password
-          })
-        }
+      if (!bcrypt.compareSync(req.body.sOldPassword, req.user.sPassword)) {
+        return res.status(status.BadRequest).jsonp({
+          status: jsonStatus.BadRequest,
+          message: messages[req.userLanguage].wrong_old_password
+        })
+      }
 
-        if (req.body.sNewPassword !== req.body.sNewRetypedPassword) {
-          return res.status(status.BadRequest).jsonp({
-            status: jsonStatus.BadRequest,
-            message: messages[req.userLanguage].password_not_match
-          })
-        }
+      if (req.body.sNewPassword !== req.body.sNewRetypedPassword) {
+        return res.status(status.BadRequest).jsonp({
+          status: jsonStatus.BadRequest,
+          message: messages[req.userLanguage].password_not_match
+        })
+      }
 
-        user.sPassword = req.body.sNewPassword
+      req.user.sPassword = req.body.sNewPassword
 
-        user.save().then(() => {
-          return res.status(status.OK).jsonp({
-            status: jsonStatus.OK,
-            message: messages[req.userLanguage].password_changed
-          })
-        }).catch(error => {
-          return catchError('Auth.userChangePassword', error, req, res)
+      req.user.save().then(() => {
+        return res.status(status.OK).jsonp({
+          status: jsonStatus.OK,
+          message: messages[req.userLanguage].password_changed
         })
       }).catch(error => {
         return catchError('Auth.userChangePassword', error, req, res)
@@ -346,7 +336,7 @@ class Auth {
             message: messages[req.userLanguage].user_not_found
           })
         }
-        if (user.eIsActive === 'b') {
+        if (user.eStatus === 'b') {
           return res.status(status.NotFound).jsonp({
             status: jsonStatus.NotFound,
             message: messages[req.userLanguage].user_blocked
@@ -471,7 +461,7 @@ class Auth {
         })
       })
     } catch (error) {
-      return catchError('Auth.forgotPasswordMail', error, req, res)
+      return catchError('Auth.reset', error, req, res)
     }
   }
 

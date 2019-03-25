@@ -61,7 +61,7 @@ class User {
         })
       }
 
-      let body = _.pick(req.body, ['sEmail', 'sPassword', 'eGender', 'eUserType', 'sCountryCode', 'sMobileNumber', 'sPushToken'])
+      let body = _.pick(req.body, ['sEmail', 'sPassword', 'eGender', 'eType', 'sCountryCode', 'sMobileNumber', 'sPushToken'])
       body.sEmail = body.sEmail.toLowerCase()
       if (publicEmailClients.includes(body.sEmail.split('@')[1]) && config.PUBLIC_EMAIL_BLOCK) {
         return res.status(status.BadRequest).jsonp({ message: messages.public_email_not_allowed })
@@ -69,7 +69,7 @@ class User {
         let params = {
           sEmail: body.sEmail,
           sPassword: body.sPassword,
-          eUserType: body.eUserType,
+          eType: body.eType,
           sCountryCode: body.sCountryCode,
           sMobileNumber: body.sMobileNumber,
           eGender: body.eGender,
@@ -154,7 +154,7 @@ class User {
               }
 
               removenull(tokenPush)
-              data.eUserStatus = 'y'
+              data.eStatus = 'y'
               data.aJwtTokens.push(tokenPush)
               UserModel.filterData(data)
               data.save().then(() => {
@@ -207,11 +207,11 @@ class User {
 
   async update(req, res) {
     try {
-      let body = _.pick(req.body, ['eUserType', 'eUserStatus', 'eGender', 'sMobileNumber', 'sCountryCode'])
+      let body = _.pick(req.body, ['eType', 'eStatus', 'eGender', 'sMobileNumber', 'sCountryCode'])
 
       let params = {
-        eUserType: body.eUserType,
-        eUserStatus: body.eUserStatus,
+        eType: body.eType,
+        eStatus: body.eStatus,
         sMobileNumber: body.sMobileNumber,
         sCountryCode: body.sCountryCode,
         eGender: body.eGender,
@@ -251,7 +251,7 @@ class User {
             message: messages[req.userLanguage].user_not_found
           })
         }
-        data.eUserStatus = 'd'
+        data.eStatus = 'd'
         data.save().then(data => {
           return res.status(status.OK).jsonp({
             status: jsonStatus.OK,
@@ -329,7 +329,7 @@ class User {
         },
         {
           '$match': {
-            eUserStatus: { '$ne': 'd' }
+            eStatus: { '$ne': 'd' }
           }
         },
         {
@@ -358,8 +358,8 @@ class User {
               $push: {
                 _id: '$document._id',
                 sEmail: { $ifNull: ['$document.sEmail', ''] },
-                eUserType: { $ifNull: ['$document.eUserType', ''] },
-                eUserStatus: { $ifNull: ['$document.eUserStatus', ''] },
+                eType: { $ifNull: ['$document.eType', ''] },
+                eStatus: { $ifNull: ['$document.eStatus', ''] },
                 sCountryCode: { $ifNull: ['$document.sCountryCode', ''] },
                 sMobileNumber: { $ifNull: ['$document.sMobileNumber', ''] },
                 eGender: { $ifNull: ['$document.eGender', ''] },

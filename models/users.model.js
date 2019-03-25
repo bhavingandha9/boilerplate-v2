@@ -11,8 +11,8 @@ const Users = new Schema({
   sMobileNumber: { type: String, trim: true },
   sCountryCode: { type: String, trim: true },
   sPassword: { type: String, trim: true },
-  eUserType: { type: String, enum: ['user', 'admin'], default: 'user' },
-  eUserStatus: { type: String, enum: ['y', 'n', 'b', 'd'], default: 'n' },
+  eType: { type: String, enum: ['user', 'admin'], default: 'user' },
+  eStatus: { type: String, enum: ['y', 'n', 'b', 'd'], default: 'n' },
   eGender: { type: String, enum: ['male', 'female'] },
   sProfilePicture: { type: String, trim: true },
   aJwtTokens: [{
@@ -35,8 +35,8 @@ Users.pre('save', function (next) {
 })
 
 Users.statics.filterData = function (user) {
-  user.eUserStatus = undefined
-  user.eUserType = undefined
+  user.eStatus = undefined
+  user.eType = undefined
   user.__v = undefined
   user.sPassword = undefined
   user.sVerificationToken = undefined
