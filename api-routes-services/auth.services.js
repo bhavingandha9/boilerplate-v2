@@ -191,6 +191,7 @@ class Auth {
           })
         }
 
+        user = user[0]
         if (user.eStatus === 'b') {
           return res.status(status.BadRequest).jsonp({
             status: jsonStatus.BadRequest,
@@ -222,7 +223,7 @@ class Auth {
           return res.status(status.OK).jsonp({
             status: jsonStatus.OK,
             message: messages[req.userLanguage].succ_login,
-            Authorization: data.sJwtToken
+            Authorization: newToken.sToken
           })
         }).catch(error => {
           return catchError('Auth.userLogin', error, req, res)
