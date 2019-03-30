@@ -10,7 +10,7 @@ const messages = {
     error: 'Something went wrong.',
     success: 'Sucessful',
     fail: 'Failed',
-    public_email_not_allowed: 'Public Emails are now allowed.',
+    public_email_not_allowed: 'Public Emails are not allowed.',
     user_verified_succ: 'User verified successfully.',
     req_email: 'Email is required.',
     req_password: 'Password is required.',
@@ -55,6 +55,8 @@ const messages = {
     image_upload_succ: 'Image uploaded successfully.',
     user_blocked: 'User is blocked.',
     route_not_found: 'Page Not Found.',
+    token_verify: 'Token is verified.',
+    not_token_verify: 'Link is not valid.',
     presigned_succ: 'Pre-signed url generated successfully.'
   }
 }

@@ -1,10 +1,10 @@
-const request = require('request');
-const config = require('./../../config');
-const _ = require('lodash');
+const request = require('request')
+const config = require('./../../config')
+const _ = require('lodash')
 
 const pushNotification = (data, callback) => {
   if (!data.deviceIds) return callback('No device found')
-  var deviceIds = _.chunk(data.deviceIds, 1000)
+  var deviceIds = _.chunk([...new Set(data.deviceIds)], 1000)
   for (let i = 0; i < deviceIds.length; i++) {
     request({
       method: 'POST',
@@ -43,6 +43,4 @@ const pushNotification = (data, callback) => {
   }
 }
 
-module.exports = {
-  pushNotification
-}
+module.exports = { pushNotification }
