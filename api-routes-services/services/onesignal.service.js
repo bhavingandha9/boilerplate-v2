@@ -1,25 +1,18 @@
-const request = require('request')
+const axios = require('axios')
 const config = require('./../../config')
 const _ = require('lodash')
 
 const pushNotification = (data, callback) => {
-  if (!data.deviceIds) return callback('No device found')
+  if (!data.deviceIds) return callback('No device found')// eslint-disable-line
   var deviceIds = _.chunk([...new Set(data.deviceIds)], 1000)
   for (let i = 0; i < deviceIds.length; i++) {
-    request({
-      method: 'POST',
-      uri: config.ONE_SIGNAL_URL,
-      headers: {
-        'authorization': 'Basic ' + config.ONE_SIGNAL_REST_KEY,
-        'content-type': 'application/json'
-      },
-      json: true,
-      body: {
-        'app_id': config.ONE_SIGNAL_APP_ID,
-        'contents': {
+    axios.post(config.ONE_SIGNAL_URL,
+      {
+        app_id: config.ONE_SIGNAL_APP_ID,
+        contents: {
           en: data.contents
         },
-        'headings': {
+        headings: {
           en: !_.isUndefined(data.heading) ? data.heading : 'Lastdeck'
         },
         ios_badgeCount: 1,
@@ -29,17 +22,21 @@ const pushNotification = (data, callback) => {
           'type': data.type,
           'roomId': data.roomId
         },
-        'include_player_ids': Array.isArray(deviceIds[i]) ? deviceIds[i] : [deviceIds[i]],
-        'send_after': !_.isUndefined(data.send_after) ? data.send_after : ''
-      }
-    },
-      function (error, response, body) {
-        if (error) return callback(error)
-        if (body.errors) return callback(body.errors)
-
-        return callback(null, body)
-      }
-    )
+        include_player_ids: Array.isArray(deviceIds[i]) ? deviceIds[i] : [deviceIds[i]],
+        send_after: !_.isUndefined(data.send_after) ? data.send_after : ''
+      },
+      {
+        headers: {
+          authorization: 'Basic ' + config.ONE_SIGNAL_REST_KEY,
+          'content-type': 'application/json'
+        }
+      })
+      .then(response => {
+        return callback(null, response.data)
+      }).catch(error => {
+        if (error.response) return callback(error.response.data)
+        else return callback(error)
+      })
   }
 }
 
