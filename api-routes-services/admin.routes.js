@@ -20,7 +20,7 @@ router.post('/user/list', isAdminAuthenticated, userService.list)
 router.post('/user/upload/profilepicture', isAdminAuthenticated, userService.userProfilePictureUpload)
 
 router.all('*', (req, res) => {
-  return res.status(status.BadRequest).jsonp({ messages: messages['English'].route_not_found })
+  return res.status(status.BadRequest).jsonp({ message: messages['English'].route_not_found })
 })
 
 module.exports = router

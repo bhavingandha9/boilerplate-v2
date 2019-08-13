@@ -307,7 +307,7 @@ class Auth {
           if (!data) return res.status(status.NotFound).jsonp({ message: messages[req.userLanguage].token_not_valid })
 
           if (req.body.sNewPassword !== req.body.sNewRetypedPassword) {
-            return res.status(status.BadRequest).jsonp({ message: messages.password_not_match })
+            return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].password_not_match })
           }
 
           data.sPassword = req.body.sNewPassword

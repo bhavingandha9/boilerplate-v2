@@ -59,7 +59,7 @@ class User {
       let body = _.pick(req.body, ['sEmail', 'sPassword', 'eGender', 'eType', 'sCountryCode', 'sMobileNumber', 'sPushToken'])
       body.sEmail = body.sEmail.toLowerCase()
       if (publicEmailClients.includes(body.sEmail.split('@')[1]) && config.PUBLIC_EMAIL_BLOCK) {
-        return res.status(status.BadRequest).jsonp({ message: messages.public_email_not_allowed })
+        return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].public_email_not_allowed })
       } else {
         let params = {
           sEmail: body.sEmail,
@@ -200,7 +200,7 @@ class User {
 
       UserModel.findOneAndUpdate({ _id: req.params.id }, { $set: params }, { new: true, 'fields': { 'sJwtToken': false, 'sVerificationToken': false, 'sPassword': false } }).then(data => {
         if (!data) {
-          return res.status(status.Locked).jsonp({ messages: messages[req.userLanguage].user_not_found })
+          return res.status(status.Locked).jsonp({ message: messages[req.userLanguage].user_not_found })
         }
         if (data.sProfilePicture) {
           data.sProfilePicture = `${config.S3_BUCKET_URL}/profilepictures/${data.sProfilePicture}`
@@ -398,7 +398,7 @@ class User {
         }
         req.user.sProfilePicture = req.file.key
         req.user.save().then(() => {
-          return res.status(status.OK).jsonp({ message: messages.image_upload_succ, image: req.file.location })
+          return res.status(status.OK).jsonp({ message: messages[req.userLanguage].image_upload_succ, image: req.file.location })
         }).catch(error => {
           return catchError('Users.userProfilePictureUpload', error, res)
         })
