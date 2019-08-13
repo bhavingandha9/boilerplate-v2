@@ -2,7 +2,7 @@ const router = require('express').Router()
 const userService = require('./user.services')
 const authService = require('./auth.services')
 const { isAdminAuthenticated, setLanguage } = require('./middlewares/auth.middleware')
-const { jsonStatus, status, messages } = require('../api.response')
+const { status, messages } = require('../api.response')
 
 router.get('/token/verify', isAdminAuthenticated, authService.verified)
 router.get('/mail/verification/:sVerificationToken', setLanguage, authService.mailVerification)
@@ -20,10 +20,7 @@ router.post('/user/list', isAdminAuthenticated, userService.list)
 router.post('/user/upload/profilepicture', isAdminAuthenticated, userService.userProfilePictureUpload)
 
 router.all('*', (req, res) => {
-  return res.status(status.BadRequest).jsonp({
-    status: jsonStatus.BadRequest,
-    messages: messages['English'].route_not_found
-  })
+  return res.status(status.BadRequest).jsonp({ messages: messages['English'].route_not_found })
 })
 
 module.exports = router

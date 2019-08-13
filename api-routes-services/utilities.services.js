@@ -8,7 +8,7 @@ const nodemailer = require('nodemailer')
 const config = require('./../config')
 const fs = require('fs')
 const ejs = require('ejs')
-const { status, jsonStatus, messages } = require('./../api.response')
+const { status, messages } = require('./../api.response')
 const transporter = nodemailer.createTransport(config.MAIL_TRANSPORTER)
 const errorLogs = fs.createWriteStream('error.log', { flags: 'a' })
 
@@ -36,10 +36,7 @@ const sendmail = function (templateName, data, mailOption) {
 const catchError = (name, error, req, res) => {
   console.log(name, error)
   errorLogs.write(`${name} => ${new Date().toString()} => ${error.toString()}\r\n`)
-  return res.status(status.InternalServerError).jsonp({
-    status: jsonStatus.InternalServerError,
-    message: messages[req.userLanguage].error
-  })
+  return res.status(status.InternalServerError).jsonp({ message: messages[req.userLanguage].error })
 }
 
 module.exports = {

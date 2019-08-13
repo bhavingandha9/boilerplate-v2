@@ -14,7 +14,7 @@ const multer = require('multer')
 const multerS3 = require('multer-s3')
 const AWS = require('aws-sdk')
 const UserModel = require('../models/users.model')
-const { messages, status, jsonStatus } = require('../api.response')
+const { messages, status } = require('../api.response')
 const config = require('../config')
 const { removenull, sendmail, catchError } = require('./utilities.services')
 const { publicEmailClients } = require('./../data')
@@ -54,12 +54,7 @@ class User {
       }
 
       let result = await req.getValidationResult()
-      if (!result.isEmpty()) {
-        return res.status(status.BadRequest).jsonp({
-          status: jsonStatus.BadRequest,
-          message: result.array()
-        })
-      }
+      if (!result.isEmpty()) return res.status(status.BadRequest).jsonp({ message: result.array() })
 
       let body = _.pick(req.body, ['sEmail', 'sPassword', 'eGender', 'eType', 'sCountryCode', 'sMobileNumber', 'sPushToken'])
       body.sEmail = body.sEmail.toLowerCase()
@@ -88,22 +83,13 @@ class User {
         UserModel.findOne(query).then(user => {
           if (user) {
             if (body.sEmail === user.sEmail) {
-              return res.status(status.Forbidden).jsonp({
-                status: jsonStatus.Forbidden,
-                message: messages[req.userLanguage].email_exist
-              })
+              return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].email_exist })
             }
             if (body.sMobileNumber === user.sMobileNumber) {
-              return res.status(status.Forbidden).jsonp({
-                status: jsonStatus.Forbidden,
-                message: messages[req.userLanguage].number_exist
-              })
+              return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].number_exist })
             }
             if (body.sEmail === user.sEmail && body.sMobileNumber === user.sMobileNumber) {
-              return res.status(status.Forbidden).jsonp({
-                status: jsonStatus.Forbidden,
-                message: messages[req.userLanguage].email_number_exist
-              })
+              return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].email_number_exist })
             }
           }
           let newUser = new UserModel(params)
@@ -127,7 +113,6 @@ class User {
                   .then(() => {
                     UserModel.filterData(data)
                     return res.status(status.OK).jsonp({
-                      status: jsonStatus.OK,
                       message: messages[req.userLanguage].user_save_succ,
                       data
                     })
@@ -136,7 +121,6 @@ class User {
                     errorLogs.write(new Date().toString() + error + '\r\n')
                     data.remove().then(() => {
                       return res.status(status.InternalServerError).jsonp({
-                        status: jsonStatus.InternalServerError,
                         message: messages[req.userLanguage].mail_fail_user_succ
                       })
                     }).catch(error => {
@@ -159,7 +143,6 @@ class User {
               UserModel.filterData(data)
               data.save().then(() => {
                 return res.status(status.OK).jsonp({
-                  status: jsonStatus.OK,
                   Authorization: tokenPush.sToken,
                   message: messages[req.userLanguage].user_save_succ,
                   data
@@ -184,16 +167,12 @@ class User {
     try {
       UserModel.findOne({ _id: req.params.id }).then(data => {
         if (!data) {
-          return res.status(status.BadRequest).jsonp({
-            status: jsonStatus.BadRequest,
-            message: messages[req.userLanguage].user_not_found
-          })
+          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].user_not_found })
         }
         if (data.sProfilePicture) {
           data.sProfilePicture = `${config.S3_BUCKET_URL}${config.PROFILE_PICTURE_PATH}/${data.sProfilePicture}`
         }
         return res.status(status.OK).jsonp({
-          status: jsonStatus.OK,
           message: messages[req.userLanguage].user_get_succ,
           data
         })
@@ -221,16 +200,12 @@ class User {
 
       UserModel.findOneAndUpdate({ _id: req.params.id }, { $set: params }, { new: true, 'fields': { 'sJwtToken': false, 'sVerificationToken': false, 'sPassword': false } }).then(data => {
         if (!data) {
-          return res.status(status.Locked).jsonp({
-            status: jsonStatus.Locked,
-            messages: messages[req.userLanguage].user_not_found
-          })
+          return res.status(status.Locked).jsonp({ messages: messages[req.userLanguage].user_not_found })
         }
         if (data.sProfilePicture) {
           data.sProfilePicture = `${config.S3_BUCKET_URL}/profilepictures/${data.sProfilePicture}`
         }
         return res.status(status.OK).jsonp({
-          status: jsonStatus.OK,
           message: messages[req.userLanguage].user_update_succ,
           data
         })
@@ -246,15 +221,11 @@ class User {
     try {
       UserModel.findById(req.params.id).then(data => {
         if (!data) {
-          return res.status(status.BadRequest).jsonp({
-            status: jsonStatus.BadRequest,
-            message: messages[req.userLanguage].user_not_found
-          })
+          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].user_not_found })
         }
         data.eStatus = 'd'
         data.save().then(data => {
           return res.status(status.OK).jsonp({
-            status: jsonStatus.OK,
             message: messages[req.userLanguage].user_remove_succ
           })
         }).catch(error => {
@@ -276,12 +247,7 @@ class User {
       req.checkBody('limit', messages[req.userLanguage].req_limit_numeric).isNumeric()
 
       let result = await req.getValidationResult()
-      if (!result.isEmpty()) {
-        return res.status(status.BadRequest).jsonp({
-          status: jsonStatus.BadRequest,
-          message: result.array()
-        })
-      }
+      if (!result.isEmpty()) return res.status(status.BadRequest).jsonp({ message: result.array() })
 
       let body = _.pick(req.body, ['start', 'limit', 'sort', 'order', 'search'])
 
@@ -373,7 +339,6 @@ class User {
       ]).exec().then(data => {
         if (data.length < 1) {
           return res.status(status.OK).jsonp({
-            status: jsonStatus.OK,
             message: messages[req.userLanguage].user_not_found,
             data: [],
             TotalData: 0
@@ -381,7 +346,6 @@ class User {
         }
 
         return res.status(status.OK).jsonp({
-          status: jsonStatus.OK,
           message: messages[req.userLanguage].user_list_get_succ,
           data: data[0].results,
           total: data[0].total
@@ -404,7 +368,6 @@ class User {
       })
       req.user.save().then(data => {
         return res.status(status.OK).jsonp({
-          status: jsonStatus.OK,
           message: messages[req.userLanguage].success
         })
       }).catch(error => {

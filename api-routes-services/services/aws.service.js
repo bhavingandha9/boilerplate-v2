@@ -1,4 +1,4 @@
-const { messages, jsonStatus, status, catchError } = require('../../api.response')
+const { messages, status, catchError } = require('../../api.response')
 const config = require('./../../config')
 const _ = require('lodash')
 const AWS = require('aws-sdk')
@@ -18,17 +18,11 @@ const getSignedUrl = async (req, res) => {
 
     let result = await req.getValidationResult()
     if (!result.isEmpty()) {
-      return res.status(status.BadRequest).jsonp({
-        status: jsonStatus.BadRequest,
-        message: result.array()
-      })
+      return res.status(status.BadRequest).jsonp({ message: result.array() })
     }
 
     if (req.params.sFolderName !== 'profilepictures') {
-      return res.status(status.BadRequest).jsonp({
-        status: jsonStatus.BadRequest,
-        message: messages[req.userLanguage].route_not_found
-      })
+      return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].route_not_found })
     }
 
     let body = _.pick(req.body, ['sFileName', 'sContentType'])
@@ -46,7 +40,6 @@ const getSignedUrl = async (req, res) => {
         catchError('Issues.getSignedUrl', error, req, res)
       } else {
         return res.status(status.OK).jsonp({
-          status: jsonStatus.OK,
           message: messages[req.userLanguage].presigned_succ,
           data: {
             sUrl: url,

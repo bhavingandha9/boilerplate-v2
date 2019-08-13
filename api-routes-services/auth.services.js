@@ -6,7 +6,7 @@ const _ = require('lodash')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt-nodejs')
 const userModel = require('../models/users.model')
-const { messages, status, jsonStatus } = require('../api.response')
+const { messages, status } = require('../api.response')
 const config = require('../config')
 const { sendmail, catchError } = require('./utilities.services')
 const { publicEmailClients } = require('./../data')
@@ -22,13 +22,13 @@ class Auth {
       if (body.sEmail) {
         body.sEmail = body.sEmail.toLowerCase()
         if (publicEmailClients.includes(body.sEmail.split('@')[1]) && config.PUBLIC_EMAIL_BLOCK) {
-          return res.status(status.BadRequest).jsonp({ status: jsonStatus.Forbidden, message: messages[req.userLanguage].public_email_not_allowed })
+          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].public_email_not_allowed })
         }
       }
 
       if (!body.sEmail && !(body.sMobileNumber && body.sCountryCode)) {
         return res.status(status.BadRequest).jsonp({
-          status: jsonStatus.BadRequest,
+
           message: messages[req.userLanguage].req_email_number
         })
       }
@@ -37,28 +37,16 @@ class Auth {
       userModel.findOne(query).then(userFind => {
         if (userFind) {
           if (body.sEmail === userFind.sEmail && (body.sMobileNumber === userFind.sMobileNumber && body.sCountryCode === userFind.sCountryCode)) {
-            return res.status(status.Forbidden).jsonp({
-              status: jsonStatus.Forbidden,
-              message: messages[req.userLanguage].email_number_exist
-            })
+            return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].email_number_exist })
           }
           if (body.sEmail === userFind.sEmail) {
-            return res.status(status.Forbidden).jsonp({
-              status: jsonStatus.Forbidden,
-              message: messages[req.userLanguage].email_exist
-            })
+            return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].email_exist })
           }
           if ((body.sMobileNumber === userFind.sMobileNumber && body.sCountryCode === userFind.sCountryCode)) {
-            return res.status(status.Forbidden).jsonp({
-              status: jsonStatus.Forbidden,
-              message: messages[req.userLanguage].number_exist
-            })
+            return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].number_exist })
           }
         } else {
-          return res.status(status.OK).jsonp({
-            status: jsonStatus.OK,
-            message: messages[req.userLanguage].user_not_found
-          })
+          return res.status(status.OK).jsonp({ message: messages[req.userLanguage].user_not_found })
         }
       }).catch(error => {
         return catchError('Auth.checkUserAvaliblity', error, req, res)
@@ -74,49 +62,29 @@ class Auth {
       req.checkBody('sPassword', messages[req.userLanguage].req_password).notEmpty()
 
       const result = await req.getValidationResult()
-      if (!result.isEmpty()) {
-        return res.status(status.BadRequest).jsonp({
-          status: jsonStatus.BadRequest,
-          message: result.array()
-        })
-      }
+      if (!result.isEmpty()) return res.status(status.BadRequest).jsonp({ message: result.array() })
 
       const body = _.pick(req.body, ['sEmail', 'sPassword'])
       body.sEmail = body.sEmail.toLowerCase()
       userModel.findOne({ sEmail: body.sEmail }).then(user => {
         if (!user) {
-          return res.status(status.NotFound).jsonp({
-            status: jsonStatus.NotFound,
-            message: messages[req.userLanguage].auth_failed
-          })
+          return res.status(status.NotFound).jsonp({ message: messages[req.userLanguage].auth_failed })
         }
 
         if (user.eStatus === 'b') {
-          return res.status(status.Forbidden).jsonp({
-            status: jsonStatus.Forbidden,
-            message: messages[req.userLanguage].user_blocked
-          })
+          return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].user_blocked })
         }
 
         if (user.eStatus === 'n') {
-          return res.status(status.Forbidden).jsonp({
-            status: jsonStatus.Forbidden,
-            message: messages[req.userLanguage].user_not_verified
-          })
+          return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].user_not_verified })
         }
 
         if (user.eType !== 'admin') {
-          return res.status(status.Forbidden).jsonp({
-            status: jsonStatus.Forbidden,
-            message: messages[req.userLanguage].user_not_admin
-          })
+          return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].user_not_admin })
         }
 
         if (!bcrypt.compareSync(body.sPassword, user.sPassword)) {
-          return res.status(status.BadRequest).jsonp({
-            status: jsonStatus.BadRequest,
-            message: messages[req.userLanguage].auth_failed
-          })
+          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].auth_failed })
         }
 
         let newToken = {
@@ -134,7 +102,6 @@ class Auth {
 
         user.save().then(data => {
           return res.status(status.OK).jsonp({
-            status: jsonStatus.OK,
             message: messages[req.userLanguage].succ_login,
             Authorization: newToken.sToken,
             userId: data._id
@@ -155,12 +122,7 @@ class Auth {
       req.checkBody('sEmail', messages[req.userLanguage].req_email).notEmpty()
       req.checkBody('sPassword', messages[req.userLanguage].req_password).notEmpty()
       const result = await req.getValidationResult()
-      if (!result.isEmpty()) {
-        return res.status(status.BadRequest).jsonp({
-          status: jsonStatus.BadRequest,
-          message: result.array()
-        })
-      }
+      if (!result.isEmpty()) return res.status(status.BadRequest).jsonp({ message: result.array() })
 
       const body = _.pick(req.body, ['sLogin', 'sPassword', 'sPushToken'])
       body.sLogin = body.sLogin.toLowerCase()
@@ -185,25 +147,16 @@ class Auth {
         }
       ]).then(user => {
         if (!user || user.length < 1) {
-          return res.status(status.NotFound).jsonp({
-            status: jsonStatus.NotFound,
-            message: messages[req.userLanguage].auth_failed
-          })
+          return res.status(status.NotFound).jsonp({ message: messages[req.userLanguage].auth_failed })
         }
 
         user = user[0]
         if (user.eStatus === 'b') {
-          return res.status(status.BadRequest).jsonp({
-            status: jsonStatus.BadRequest,
-            message: messages[req.userLanguage].user_blocked
-          })
+          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].user_blocked })
         }
 
         if (!bcrypt.compareSync(body.sPassword, user.sPassword)) {
-          return res.status(status.BadRequest).jsonp({
-            status: jsonStatus.BadRequest,
-            message: messages[req.userLanguage].auth_failed
-          })
+          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].auth_failed })
         }
 
         let newToken = {
@@ -221,7 +174,6 @@ class Auth {
 
         user.save().then(data => {
           return res.status(status.OK).jsonp({
-            status: jsonStatus.OK,
             message: messages[req.userLanguage].succ_login,
             Authorization: newToken.sToken
           })
@@ -241,21 +193,12 @@ class Auth {
       let decoded = jwt.verify(req.params.sVerificationToken, config.JWT_SECRET)
 
       userModel.findOne({ _id: decoded._id, sVerificationToken: req.params.sVerificationToken }).then(data => {
-        if (!data) {
-          return res.status(status.NotFound).jsonp({
-            status: jsonStatus.NotFound,
-            message: messages[req.userLanguage].token_not_valid
-          })
-        }
+        if (!data) return res.status(status.NotFound).jsonp({ message: messages[req.userLanguage].token_not_valid })
 
         data.eStatus = 'y'
         data.sVerificationToken = null
-
         data.save().then(() => {
-          return res.status(status.OK).jsonp({
-            status: jsonStatus.OK,
-            message: messages[req.userLanguage].user_verified_succ
-          })
+          return res.status(status.OK).jsonp({ message: messages[req.userLanguage].user_verified_succ })
         }).catch(error => {
           return catchError('Auth.mailVerification', error, req, res)
         })
@@ -270,10 +213,7 @@ class Auth {
   async logout(req, res) {
     try {
       userModel.findByIdAndUpdate(req.user._id, { $pull: { 'aJwtTokens': { 'sToken': req.header('Authorization') } } }).then(user => {
-        return res.status(status.OK).jsonp({
-          status: jsonStatus.OK,
-          message: messages[req.userLanguage].succ_logout
-        })
+        return res.status(status.OK).jsonp({ message: messages[req.userLanguage].succ_logout })
       }).catch(error => {
         return catchError('Auth.logout', error, req, res)
       })
@@ -289,26 +229,16 @@ class Auth {
       req.checkBody('sNewRetypedPassword', messages[req.userLanguage].req_new_retyped_password).notEmpty()
 
       if (!bcrypt.compareSync(req.body.sOldPassword, req.user.sPassword)) {
-        return res.status(status.BadRequest).jsonp({
-          status: jsonStatus.BadRequest,
-          message: messages[req.userLanguage].wrong_old_password
-        })
+        return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].wrong_old_password })
       }
 
       if (req.body.sNewPassword !== req.body.sNewRetypedPassword) {
-        return res.status(status.BadRequest).jsonp({
-          status: jsonStatus.BadRequest,
-          message: messages[req.userLanguage].password_not_match
-        })
+        return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].password_not_match })
       }
 
       req.user.sPassword = req.body.sNewPassword
-
       req.user.save().then(() => {
-        return res.status(status.OK).jsonp({
-          status: jsonStatus.OK,
-          message: messages[req.userLanguage].password_changed
-        })
+        return res.status(status.OK).jsonp({ message: messages[req.userLanguage].password_changed })
       }).catch(error => {
         return catchError('Auth.userChangePassword', error, req, res)
       })
@@ -323,25 +253,14 @@ class Auth {
       req.checkBody('sEmail', messages[req.userLanguage].req_email).isEmail()
 
       const result = await req.getValidationResult()
-      if (!result.isEmpty()) {
-        return res.status(status.BadRequest).jsonp({
-          status: jsonStatus.BadRequest,
-          message: result.array()
-        })
-      }
+      if (!result.isEmpty()) return res.status(status.BadRequest).jsonp({ message: result.array() })
 
       userModel.findOne({ sEmail: req.body.sEmail.toLowerCase() }).then(user => {
         if (!user) {
-          return res.status(status.NotFound).jsonp({
-            status: jsonStatus.NotFound,
-            message: messages[req.userLanguage].user_not_found
-          })
+          return res.status(status.NotFound).jsonp({ message: messages[req.userLanguage].user_not_found })
         }
         if (user.eStatus === 'b') {
-          return res.status(status.NotFound).jsonp({
-            status: jsonStatus.NotFound,
-            message: messages[req.userLanguage].user_blocked
-          })
+          return res.status(status.NotFound).jsonp({ message: messages[req.userLanguage].user_blocked })
         }
 
         user.sVerificationToken = jwt.sign({ _id: (user._id).toHexString() }, config.JWT_SECRET, { expiresIn: config.JWT_VALIDITY })
@@ -358,10 +277,7 @@ class Auth {
               subject: 'Forgot Password'
             })
             .then(() => {
-              return res.status(status.OK).jsonp({
-                status: status.OK,
-                message: messages[req.userLanguage].succ_mail_sent
-              })
+              return res.status(status.OK).jsonp({ message: messages[req.userLanguage].succ_mail_sent })
             }).catch(error => {
               return catchError('Auth.forgotPasswordMail', error, req, res)
             })
@@ -382,44 +298,23 @@ class Auth {
       req.checkBody('sNewRetypedPassword', messages[req.userLanguage].req_new_retyped_password).notEmpty()
 
       const result = await req.getValidationResult()
-      if (!result.isEmpty()) {
-        return res.status(status.BadRequest).jsonp({
-          status: jsonStatus.BadRequest,
-          message: result.array()
-        })
-      }
+      if (!result.isEmpty()) res.status(status.BadRequest).jsonp({ message: result.array() })
 
       jwt.verify(req.params.sVerificationToken, config.JWT_SECRET, (err, decoded) => {
-        if (err) {
-          return res.status(status.BadRequest).jsonp({
-            status: jsonStatus.BadRequest,
-            message: messages[req.userLanguage].token_not_valid
-          })
-        }
+        if (err) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].token_not_valid })
 
         userModel.findOne({ _id: decoded._id, sVerificationToken: req.params.sVerificationToken }).then(data => {
-          if (!data) {
-            return res.status(status.NotFound).jsonp({
-              status: jsonStatus.NotFound,
-              message: messages[req.userLanguage].token_not_valid
-            })
-          }
+          if (!data) return res.status(status.NotFound).jsonp({ message: messages[req.userLanguage].token_not_valid })
 
           if (req.body.sNewPassword !== req.body.sNewRetypedPassword) {
-            return res.status(status.BadRequest).jsonp({
-              status: jsonStatus.BadRequest,
-              message: messages.password_not_match
-            })
+            return res.status(status.BadRequest).jsonp({ message: messages.password_not_match })
           }
 
           data.sPassword = req.body.sNewPassword
           data.sVerificationToken = null
 
           data.save().then(() => {
-            return res.status(status.OK).jsonp({
-              status: jsonStatus.OK,
-              message: messages[req.userLanguage].password_changed
-            })
+            return res.status(status.OK).jsonp({ message: messages[req.userLanguage].password_changed })
           }).catch(error => {
             return catchError('Auth.forgotPassword', error, req, res)
           })
@@ -469,16 +364,9 @@ class Auth {
   // check if forgot password link is valid or not
   async forgotpasswordTokenVerified(req, res) {
     userModel.findOne({ sVerificationToken: req.params.sVerificationToken }).then(data => {
-      if (!data) {
-        return res.status(status.BadRequest).jsonp({
-          status: jsonStatus.BadRequest,
-          message: messages[req.userLanguage].not_token_verify
-        })
-      }
-      return res.status(status.OK).jsonp({
-        status: jsonStatus.OK,
-        message: messages[req.userLanguage].token_verify
-      })
+      if (!data) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_token_verify })
+
+      return res.status(status.OK).jsonp({ message: messages[req.userLanguage].token_verify })
     }).catch(error => {
       return catchError('Auth.forgotpasswordTokenVerified', error, res)
     })
@@ -486,15 +374,12 @@ class Auth {
 
   // render the expired link view
   async linkTimeout(req, res) {
-    res.render('token_expire', { SITE_NAME: config.SITE_NAME })
+    return res.render('token_expire', { SITE_NAME: config.SITE_NAME })
   }
 
   async verified(req, res) {
-    res.status(status.OK).jsonp({
-      status: jsonStatus.OK,
-      message: messages[req.userLanguage].userAuthenticated,
-      userId: req.user._id
-    })
+    userModel.filterData(req.user)
+    return res.status(status.OK).jsonp({ message: messages[req.userLanguage].userAuthenticated, user: req.user })
   }
 }
 

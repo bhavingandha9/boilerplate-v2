@@ -5,7 +5,7 @@
  * @method {findByToken} is specified in user.model.js
  */
 const userModel = require('./../../models/users.model')
-const { messages, status, jsonStatus } = require('./../../api.response.js')
+const { messages, status } = require('./../../api.response.js')
 const { catchError } = require('./../utilities.services')
 
 const isAdminAuthenticated = (req, res, next) => {
@@ -21,7 +21,6 @@ const isAdminAuthenticated = (req, res, next) => {
       userModel.findByToken(token).then((user) => {
         if (!user) {
           return res.status(status.Unauthorized).jsonp({
-            status: jsonStatus.Unauthorized,
             message: messages[req.userLanguage].err_unauthorized
           })
         }
@@ -31,29 +30,17 @@ const isAdminAuthenticated = (req, res, next) => {
           req.user = user
           return next(null, null)
         } else if (user.eStatus === 'b' || user.eStatus === 'd') {
-          return res.status(status.Unauthorized).jsonp({
-            status: jsonStatus.Unauthorized,
-            message: messages[req.userLanguage].user_blocked
-          })
+          return res.status(status.Unauthorized).jsonp({ message: messages[req.userLanguage].user_blocked })
         } else if (user.eStatus === 'n') {
-          return res.status(status.Unauthorized).jsonp({
-            status: jsonStatus.Unauthorized,
-            message: messages[req.userLanguage].user_not_verified
-          })
+          return res.status(status.Unauthorized).jsonp({ message: messages[req.userLanguage].user_not_verified })
         } else {
-          return res.status(status.Unauthorized).jsonp({
-            status: jsonStatus.Unauthorized,
-            message: messages[req.userLanguage].err_unauthorized
-          })
+          return res.status(status.Unauthorized).jsonp({ message: messages[req.userLanguage].err_unauthorized })
         }
       }).catch(error => {
         return catchError('isAdminAuthenticated', error, req, res)
       })
     } else {
-      return res.status(status.Unauthorized).jsonp({
-        status: jsonStatus.Unauthorized,
-        message: messages[req.userLanguage].err_unauthorized
-      })
+      return res.status(status.Unauthorized).jsonp({ message: messages[req.userLanguage].err_unauthorized })
     }
   } catch (error) {
     return catchError('isAdminAuthenticated', error, req, res)
@@ -72,21 +59,12 @@ const isUserAuthenticated = (req, res, next) => {
     if (token) {
       userModel.findByToken(token).then(user => {
         if (!user) {
-          return res.status(status.Unauthorized).jsonp({
-            status: jsonStatus.Unauthorized,
-            message: messages[req.userLanguage].err_unauthorized
-          })
+          return res.status(status.Unauthorized).jsonp({ message: messages[req.userLanguage].err_unauthorized })
         }
         if (user.eStatus === 'b' || user.eStatus === 'd') {
-          return res.status(status.Unauthorized).jsonp({
-            status: jsonStatus.Unauthorized,
-            message: messages[req.userLanguage].user_blocked
-          })
+          return res.status(status.Unauthorized).jsonp({ message: messages[req.userLanguage].user_blocked })
         } else if (user.eStatus === 'n') {
-          return res.status(status.Unauthorized).jsonp({
-            status: jsonStatus.Unauthorized,
-            message: messages[req.userLanguage].user_not_verified
-          })
+          return res.status(status.Unauthorized).jsonp({ message: messages[req.userLanguage].user_not_verified })
         } else {
           req._id = user._id
           req.user = user
@@ -96,10 +74,7 @@ const isUserAuthenticated = (req, res, next) => {
         return catchError('isUserAuthenticated', error, req, res)
       })
     } else {
-      return res.status(status.Unauthorized).jsonp({
-        status: jsonStatus.Unauthorized,
-        message: messages[req.userLanguage].err_unauthorized
-      })
+      return res.status(status.Unauthorized).jsonp({ message: messages[req.userLanguage].err_unauthorized })
     }
   } catch (error) {
     return catchError('isUserAuthenticated', error, req, res)
@@ -113,7 +88,7 @@ const setLanguage = (req, res, next) => {
   } else {
     req.userLanguage = 'English'
   }
-  return next(null, null)
+  return next()
 }
 
 module.exports = {

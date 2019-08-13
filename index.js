@@ -32,6 +32,14 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(expressValidator())
+app.use((req, res, next) => {
+  const expressJsonp = res.jsonp
+  res.jsonp = function (body) {
+    body.status = res.statusCode
+    expressJsonp.call(this, body)
+  }
+  next()
+})
 app.set('view engine', 'ejs')
 /**
  * mongoose connection (url from config/env)
@@ -52,10 +60,13 @@ app.use('/api/v1/admin', adminRoutes)
 app.get('/user/reset/:sVerificationToken', authService.reset)
 app.get('/user/linkTimeout', authService.linkTimeout)
 
+app.get('/temp', (req, res) => {
+  return res.status(404).jsonp({ message: 'success' })
+})
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '/public/404.html'))
 })
-
 app.listen(config.PORT, () => {
   console.log('Magic happens on port :' + config.PORT)
 })
