@@ -5,10 +5,10 @@
  */
 
 const nodemailer = require('nodemailer')
-const config = require('./../config')
+const config = require('../config')
 const fs = require('fs')
 const ejs = require('ejs')
-const { status, messages } = require('./../api.response')
+const { status, messages } = require('../api.response')
 const transporter = nodemailer.createTransport(config.MAIL_TRANSPORTER)
 const errorLogs = fs.createWriteStream('error.log', { flags: 'a' })
 

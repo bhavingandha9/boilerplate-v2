@@ -8,8 +8,8 @@ const bcrypt = require('bcrypt-nodejs')
 const userModel = require('../models/users.model')
 const { messages, status } = require('../api.response')
 const config = require('../config')
-const { sendmail, catchError } = require('./utilities.services')
-const { publicEmailClients } = require('./../data')
+const { sendmail, catchError } = require('./utilities.service')
+const { publicEmailClients } = require('../data')
 
 class Auth {
   // Method used for check if email or mobile exist before registration

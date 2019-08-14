@@ -10,7 +10,7 @@ const path = require('path')
 const helmet = require('helmet')
 const morgan = require('morgan')
 const fs = require('fs')
-const authService = require('./api-routes-services/auth.services')
+const authService = require('./api-routes-services/auth.service')
 
 /**
  * internal modules/files import

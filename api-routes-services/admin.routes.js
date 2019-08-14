@@ -1,6 +1,6 @@
 const router = require('express').Router()
-const userService = require('./user.services')
-const authService = require('./auth.services')
+const userService = require('./user.service')
+const authService = require('./auth.service')
 const { isAdminAuthenticated, setLanguage } = require('./middlewares/auth.middleware')
 const { status, messages } = require('../api.response')
 

@@ -6,7 +6,7 @@
  */
 const userModel = require('./../../models/users.model')
 const { messages, status } = require('./../../api.response.js')
-const { catchError } = require('./../utilities.services')
+const { catchError } = require('./../utilities.service')
 
 const isAdminAuthenticated = (req, res, next) => {
   try {

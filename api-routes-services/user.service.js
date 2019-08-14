@@ -16,8 +16,8 @@ const AWS = require('aws-sdk')
 const UserModel = require('../models/users.model')
 const { messages, status } = require('../api.response')
 const config = require('../config')
-const { removenull, sendmail, catchError } = require('./utilities.services')
-const { publicEmailClients } = require('./../data')
+const { removenull, sendmail, catchError } = require('./utilities.service')
+const { publicEmailClients } = require('../data')
 const errorLogs = fs.createWriteStream('error.log', { flags: 'a' })
 
 AWS.config.update({
