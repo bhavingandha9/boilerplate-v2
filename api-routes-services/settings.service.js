@@ -1,5 +1,5 @@
 const SettingsModel = require('../models/settings.model')
-const { removenull, catchError } = require('./utilities.services')
+const { removenull, catchError } = require('./utilities.service')
 const { messages, status } = require('../api.response')
 
 class Settings {
