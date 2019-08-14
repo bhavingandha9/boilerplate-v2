@@ -46,7 +46,7 @@ class Auth {
             return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].number_exist })
           }
         } else {
-          return res.status(status.OK).jsonp({ message: messages[req.userLanguage].user_not_found })
+          return res.status(status.OK).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
         }
       }).catch(error => {
         return catchError('Auth.checkUserAvaliblity', error, req, res)
@@ -58,8 +58,8 @@ class Auth {
 
   async adminLogin(req, res) {
     try {
-      req.checkBody('sEmail', messages[req.userLanguage].req_email).notEmpty()
-      req.checkBody('sPassword', messages[req.userLanguage].req_password).notEmpty()
+      req.checkBody('sEmail', messages[req.userLanguage].required.replace('##', 'Email')).notEmpty()
+      req.checkBody('sPassword', messages[req.userLanguage].required.replace('##', 'Password')).notEmpty()
 
       const result = await req.getValidationResult()
       if (!result.isEmpty()) return res.status(status.BadRequest).jsonp({ message: result.array() })
@@ -119,8 +119,8 @@ class Auth {
 
   async userLogin(req, res) {
     try {
-      req.checkBody('sEmail', messages[req.userLanguage].req_email).notEmpty()
-      req.checkBody('sPassword', messages[req.userLanguage].req_password).notEmpty()
+      req.checkBody('sEmail', messages[req.userLanguage].required.replace('##', 'Email')).notEmpty()
+      req.checkBody('sPassword', messages[req.userLanguage].required.replace('##', 'Password')).notEmpty()
       const result = await req.getValidationResult()
       if (!result.isEmpty()) return res.status(status.BadRequest).jsonp({ message: result.array() })
 
@@ -224,9 +224,9 @@ class Auth {
 
   async userChangePassword(req, res) {
     try {
-      req.checkBody('sOldPassword', messages[req.userLanguage].req_old_password).notEmpty()
-      req.checkBody('sNewPassword', messages[req.userLanguage].req_new_password).notEmpty()
-      req.checkBody('sNewRetypedPassword', messages[req.userLanguage].req_new_retyped_password).notEmpty()
+      req.checkBody('sOldPassword', messages[req.userLanguage].required.replace('##', 'Old Password')).notEmpty()
+      req.checkBody('sNewPassword', messages[req.userLanguage].required.replace('##', 'New Password')).notEmpty()
+      req.checkBody('sNewRetypedPassword', messages[req.userLanguage].required.replace('##', 'New Retyped Password')).notEmpty()
 
       if (!bcrypt.compareSync(req.body.sOldPassword, req.user.sPassword)) {
         return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].wrong_old_password })
@@ -249,15 +249,15 @@ class Auth {
 
   async forgotPasswordMail(req, res) {
     try {
-      req.checkBody('sEmail', messages[req.userLanguage].req_email).notEmpty()
-      req.checkBody('sEmail', messages[req.userLanguage].req_email).isEmail()
+      req.checkBody('sEmail', messages[req.userLanguage].required.replace('##', 'Email')).notEmpty()
+      req.checkBody('sEmail', messages[req.userLanguage].required.replace('##', 'Email')).isEmail()
 
       const result = await req.getValidationResult()
       if (!result.isEmpty()) return res.status(status.BadRequest).jsonp({ message: result.array() })
 
       userModel.findOne({ sEmail: req.body.sEmail.toLowerCase() }).then(user => {
         if (!user) {
-          return res.status(status.NotFound).jsonp({ message: messages[req.userLanguage].user_not_found })
+          return res.status(status.NotFound).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
         }
         if (user.eStatus === 'b') {
           return res.status(status.NotFound).jsonp({ message: messages[req.userLanguage].user_blocked })
@@ -294,8 +294,8 @@ class Auth {
 
   async forgotPassword(req, res) {
     try {
-      req.checkBody('sNewPassword', messages[req.userLanguage].req_new_password).notEmpty()
-      req.checkBody('sNewRetypedPassword', messages[req.userLanguage].req_new_retyped_password).notEmpty()
+      req.checkBody('sNewPassword', messages[req.userLanguage].required.replace('##', 'New Password')).notEmpty()
+      req.checkBody('sNewRetypedPassword', messages[req.userLanguage].required.replace('##', 'New Retyped Password')).notEmpty()
 
       const result = await req.getValidationResult()
       if (!result.isEmpty()) res.status(status.BadRequest).jsonp({ message: result.array() })

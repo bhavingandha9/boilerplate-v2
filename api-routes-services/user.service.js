@@ -41,13 +41,13 @@ const storage = multerS3({
 class User {
   async store(req, res) {
     try {
-      req.checkBody('sPassword', messages[req.userLanguage].req_password).notEmpty()
+      req.checkBody('sPassword', messages[req.userLanguage].required.replace('##', 'Password')).notEmpty()
 
       if (!req.body.sEmail && !req.body.sMobileNumber) {
         return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].req_email_number })
       }
       if (req.body.sEmail) {
-        req.checkBody('sEmail', messages[req.userLanguage].req_email).isEmail()
+        req.checkBody('sEmail', messages[req.userLanguage].required.replace('##', 'Email')).isEmail()
       }
       if (req.body.sMobileNumber) {
         req.checkBody('sCountryCode', messages[req.userLanguage].req_sCountryCode).notEmpty()
@@ -167,7 +167,7 @@ class User {
     try {
       UserModel.findOne({ _id: req.params.id }).then(data => {
         if (!data) {
-          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].user_not_found })
+          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
         }
         if (data.sProfilePicture) {
           data.sProfilePicture = `${config.S3_BUCKET_URL}${config.PROFILE_PICTURE_PATH}/${data.sProfilePicture}`
@@ -200,7 +200,7 @@ class User {
 
       UserModel.findOneAndUpdate({ _id: req.params.id }, { $set: params }, { new: true, 'fields': { 'sJwtToken': false, 'sVerificationToken': false, 'sPassword': false } }).then(data => {
         if (!data) {
-          return res.status(status.Locked).jsonp({ message: messages[req.userLanguage].user_not_found })
+          return res.status(status.Locked).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
         }
         if (data.sProfilePicture) {
           data.sProfilePicture = `${config.S3_BUCKET_URL}/profilepictures/${data.sProfilePicture}`
@@ -221,7 +221,7 @@ class User {
     try {
       UserModel.findById(req.params.id).then(data => {
         if (!data) {
-          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].user_not_found })
+          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
         }
         data.eStatus = 'd'
         data.save().then(data => {
@@ -339,7 +339,7 @@ class User {
       ]).exec().then(data => {
         if (data.length < 1) {
           return res.status(status.OK).jsonp({
-            message: messages[req.userLanguage].user_not_found,
+            message: messages[req.userLanguage].not_found.replace('##', 'User'),
             data: [],
             TotalData: 0
           })
