@@ -13,17 +13,17 @@ const pushNotification = (data, callback) => {
           en: data.contents
         },
         headings: {
-          en: !_.isUndefined(data.heading) ? data.heading : 'Lastdeck'
+          en: data.heading ? data.heading : 'Boilerplate'
         },
         ios_badgeCount: 1,
         ios_badgeType: 'Increase',
         ios_category: '',
         data: {
-          'type': data.type,
-          'roomId': data.roomId
+          type: data.type,
+          roomId: data.roomId
         },
         include_player_ids: Array.isArray(deviceIds[i]) ? deviceIds[i] : [deviceIds[i]],
-        send_after: !_.isUndefined(data.send_after) ? data.send_after : ''
+        send_after: data.send_after ? data.send_after : ''
       },
       {
         headers: {

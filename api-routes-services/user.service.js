@@ -7,7 +7,6 @@
  * @method {userProfilePictureUpload} is a separate API function for uploading user profile picture after user stored
  */
 
-const _ = require('lodash')
 const jwt = require('jsonwebtoken')
 const fs = require('fs')
 const multer = require('multer')
@@ -56,107 +55,92 @@ class User {
       let result = await req.getValidationResult()
       if (!result.isEmpty()) return res.status(status.BadRequest).jsonp({ message: result.array() })
 
-      let body = _.pick(req.body, ['sEmail', 'sPassword', 'eGender', 'eType', 'sCountryCode', 'sMobileNumber', 'sPushToken'])
-      body.sEmail = body.sEmail.toLowerCase()
-      if (publicEmailClients.includes(body.sEmail.split('@')[1]) && config.PUBLIC_EMAIL_BLOCK) {
+      req.body.sEmail = req.body.sEmail.toLowerCase()
+      if (publicEmailClients.includes(req.body.sEmail.split('@')[1]) && config.PUBLIC_EMAIL_BLOCK) {
         return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].public_email_not_allowed })
       } else {
         let params = {
-          sEmail: body.sEmail,
-          sPassword: body.sPassword,
-          eType: body.eType,
-          sCountryCode: body.sCountryCode,
-          sMobileNumber: body.sMobileNumber,
-          eGender: body.eGender,
+          sEmail: req.body.sEmail,
+          sPassword: req.body.sPassword,
+          eType: req.body.eType,
+          sCountryCode: req.body.sCountryCode,
+          sMobileNumber: req.body.sMobileNumber,
+          eGender: req.body.eGender,
           dUpdatedAt: Date.now(),
           dCreatedAt: Date.now()
         }
         removenull(params)
 
-        let query = {
-          $or: []
-        }
+        let query = { $or: [] }
 
-        if (body.sEmail) query.$or.push({ sEmail: body.sEmail })
-        if (body.sMobileNumber) query.$or.push({ sMobileNumber: body.sMobileNumber, sCountryCode: body.sCountryCode })
+        if (req.body.sEmail) query.$or.push({ sEmail: req.body.sEmail })
+        if (req.body.sMobileNumber) query.$or.push({ sMobileNumber: req.body.sMobileNumber, sCountryCode: req.body.sCountryCode })
 
-        UserModel.findOne(query).then(user => {
-          if (user) {
-            if (body.sEmail === user.sEmail) {
-              return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].email_exist })
-            }
-            if (body.sMobileNumber === user.sMobileNumber) {
-              return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].number_exist })
-            }
-            if (body.sEmail === user.sEmail && body.sMobileNumber === user.sMobileNumber) {
-              return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].email_number_exist })
-            }
+        let user = await UserModel.findOne(query)
+        if (user) {
+          if (req.body.sEmail === user.sEmail) {
+            return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].email_exist })
           }
-          let newUser = new UserModel(params)
-          newUser.save().then(data => {
-            if (config.MAIL_VERIFICATION) {
-              data.sVerificationToken = jwt.sign({ _id: data._id }, config.JWT_SECRET, { expiresIn: config.JWT_VALIDITY })
+          if (req.body.sMobileNumber === user.sMobileNumber) {
+            return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].number_exist })
+          }
+          if (req.body.sEmail === user.sEmail && req.body.sMobileNumber === user.sMobileNumber) {
+            return res.status(status.Forbidden).jsonp({ message: messages[req.userLanguage].email_number_exist })
+          }
+        }
+        let newUser = new UserModel(params)
+        let data = await newUser.save()
+        if (config.MAIL_VERIFICATION) {
+          data.sVerificationToken = jwt.sign({ _id: data._id }, config.JWT_SECRET, { expiresIn: config.JWT_VALIDITY })
 
-              data.save().then(data => {
-                sendmail('account_activated.ejs',
-                  {
-                    sUsername: data.name,
-                    SITE_NAME: config.SITE_NAME,
-                    SITE_IMAGE: config.SITE_IMAGE,
-                    ACTIVELINK: `${config.MAIL_HOST_LINK}/mail/verification/${data.sVerificationToken}`,
-                    CURRENT_YEAR: new Date().getFullYear()
-                  }, {
-                    from: process.env.SMTP_FROM,
-                    to: body.sEmail, // list of receivers
-                    subject: 'Email Verification' // Subject line
-                  })
-                  .then(() => {
-                    UserModel.filterData(data)
-                    return res.status(status.OK).jsonp({
-                      message: messages[req.userLanguage].user_save_succ,
-                      data
-                    })
-                  }).catch(error => {
-                    console.log(error)
-                    errorLogs.write(new Date().toString() + error + '\r\n')
-                    data.remove().then(() => {
-                      return res.status(status.InternalServerError).jsonp({
-                        message: messages[req.userLanguage].mail_fail_user_succ
-                      })
-                    }).catch(error => {
-                      return catchError('User.store', error, req, res)
-                    })
-                  })
-              }).catch(error => {
-                return catchError('User.store', error, req, res)
-              })
-            } else {
-              let tokenPush = {
-                sToken: jwt.sign({ _id: data._id }, config.JWT_SECRET),
-                sPushToken: body.sPushToken,
-                sIpAddres: req.connection.remoteAddress
-              }
-
-              removenull(tokenPush)
-              data.eStatus = 'y'
-              data.aJwtTokens.push(tokenPush)
+          data = await data.save()
+          sendmail('account_activated.ejs',
+            {
+              sUsername: data.name,
+              SITE_NAME: config.SITE_NAME,
+              SITE_IMAGE: config.SITE_IMAGE,
+              ACTIVELINK: `${config.MAIL_HOST_LINK}/mail/verification/${data.sVerificationToken}`,
+              CURRENT_YEAR: new Date().getFullYear()
+            }, {
+              from: process.env.SMTP_FROM,
+              to: req.body.sEmail, // list of receivers
+              subject: 'Email Verification' // Subject line
+            })
+            .then(() => {
               UserModel.filterData(data)
-              data.save().then(() => {
-                return res.status(status.OK).jsonp({
-                  Authorization: tokenPush.sToken,
-                  message: messages[req.userLanguage].user_save_succ,
-                  data
+              return res.status(status.OK).jsonp({
+                message: messages[req.userLanguage].user_save_succ,
+                data
+              })
+            }).catch(error => {
+              console.log(error)
+              errorLogs.write(new Date().toString() + error + '\r\n')
+              data.remove().then(() => {
+                return res.status(status.InternalServerError).jsonp({
+                  message: messages[req.userLanguage].mail_fail_user_succ
                 })
               }).catch(error => {
                 return catchError('User.store', error, req, res)
               })
-            }
-          }).catch(error => {
-            return catchError('User.store', error, req, res)
+            })
+        } else {
+          let tokenPush = {
+            sToken: jwt.sign({ _id: data._id }, config.JWT_SECRET),
+            sPushToken: req.body.sPushToken,
+            sIpAddres: req.connection.remoteAddress
+          }
+
+          removenull(tokenPush)
+          data.eStatus = 'y'
+          data.aJwtTokens.push(tokenPush)
+          UserModel.filterData(data)
+          await data.save()
+          return res.status(status.OK).jsonp({
+            Authorization: tokenPush.sToken,
+            message: messages[req.userLanguage].user_save_succ,
+            data
           })
-        }).catch(error => {
-          return catchError('User.store', error, req, res)
-        })
+        }
       }
     } catch (error) {
       return catchError('User.store', error, req, res)
@@ -165,19 +149,16 @@ class User {
 
   async get(req, res) {
     try {
-      UserModel.findOne({ _id: req.params.id }).then(data => {
-        if (!data) {
-          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
-        }
-        if (data.sProfilePicture) {
-          data.sProfilePicture = `${config.S3_BUCKET_URL}${config.PROFILE_PICTURE_PATH}/${data.sProfilePicture}`
-        }
-        return res.status(status.OK).jsonp({
-          message: messages[req.userLanguage].user_get_succ,
-          data
-        })
-      }).catch(error => {
-        return catchError('User.get', error, req, res)
+      let data = await UserModel.findOne({ _id: req.params.id })
+      if (!data) {
+        return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
+      }
+      if (data.sProfilePicture) {
+        data.sProfilePicture = `${config.S3_BUCKET_URL}${config.PROFILE_PICTURE_PATH}/${data.sProfilePicture}`
+      }
+      return res.status(status.OK).jsonp({
+        message: messages[req.userLanguage].user_get_succ,
+        data
       })
     } catch (error) {
       return catchError('User.get', error, req, res)
@@ -186,31 +167,26 @@ class User {
 
   async update(req, res) {
     try {
-      let body = _.pick(req.body, ['eType', 'eStatus', 'eGender', 'sMobileNumber', 'sCountryCode'])
-
       let params = {
-        eType: body.eType,
-        eStatus: body.eStatus,
-        sMobileNumber: body.sMobileNumber,
-        sCountryCode: body.sCountryCode,
-        eGender: body.eGender,
+        eType: req.body.eType,
+        eStatus: req.body.eStatus,
+        sMobileNumber: req.body.sMobileNumber,
+        sCountryCode: req.body.sCountryCode,
+        eGender: req.body.eGender,
         dUpdatedAt: Date.now()
       }
       removenull(params)
 
-      UserModel.findOneAndUpdate({ _id: req.params.id }, { $set: params }, { new: true, 'fields': { 'sJwtToken': false, 'sVerificationToken': false, 'sPassword': false } }).then(data => {
-        if (!data) {
-          return res.status(status.Locked).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
-        }
-        if (data.sProfilePicture) {
-          data.sProfilePicture = `${config.S3_BUCKET_URL}/profilepictures/${data.sProfilePicture}`
-        }
-        return res.status(status.OK).jsonp({
-          message: messages[req.userLanguage].user_update_succ,
-          data
-        })
-      }).catch(error => {
-        return catchError('User.update', error, req, res)
+      let data = await UserModel.findOneAndUpdate({ _id: req.params.id }, { $set: params }, { new: true, 'fields': { 'sJwtToken': false, 'sVerificationToken': false, 'sPassword': false } })
+      if (!data) {
+        return res.status(status.Locked).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
+      }
+      if (data.sProfilePicture) {
+        data.sProfilePicture = `${config.S3_BUCKET_URL}/profilepictures/${data.sProfilePicture}`
+      }
+      return res.status(status.OK).jsonp({
+        message: messages[req.userLanguage].user_update_succ,
+        data
       })
     } catch (error) {
       return catchError('User.update', error, req, res)
@@ -219,20 +195,14 @@ class User {
 
   async remove(req, res) {
     try {
-      UserModel.findById(req.params.id).then(data => {
-        if (!data) {
-          return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
-        }
-        data.eStatus = 'd'
-        data.save().then(data => {
-          return res.status(status.OK).jsonp({
-            message: messages[req.userLanguage].user_remove_succ
-          })
-        }).catch(error => {
-          return catchError('User.remove', error, req, res)
-        })
-      }).catch(error => {
-        return catchError('User.remove', error, req, res)
+      let data = await UserModel.findById(req.params.id)
+      if (!data) {
+        return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
+      }
+      data.eStatus = 'd'
+      data = await data.save()
+      return res.status(status.OK).jsonp({
+        message: messages[req.userLanguage].user_remove_succ
       })
     } catch (error) {
       return catchError('User.remove', error, req, res)
@@ -241,38 +211,30 @@ class User {
 
   async list(req, res) {
     try {
-      req.checkBody('start', messages[req.userLanguage].req_start).notEmpty()
-      req.checkBody('start', messages[req.userLanguage].req_start_numeric).isNumeric()
-      req.checkBody('limit', messages[req.userLanguage].req_limit).notEmpty()
-      req.checkBody('limit', messages[req.userLanguage].req_limit_numeric).isNumeric()
+      req.body.nStart = typeof req.body.nStart === 'number' ? req.body.nStart : 0
+      req.body.nLimit = typeof req.body.nLimit === 'number' ? req.body.nLimit : 0
 
-      let result = await req.getValidationResult()
-      if (!result.isEmpty()) return res.status(status.BadRequest).jsonp({ message: result.array() })
+      req.body.sort_by = '_id'
+      req.body.order_by = 1
 
-      let body = _.pick(req.body, ['start', 'limit', 'sort', 'order', 'search'])
-
-      let start = body.start
-      let limit = body.limit
-      body.sort_by = '_id'
-      body.order_by = 1
-      if (!_.isUndefined(body.order) && body.order !== '') {
-        if (body.order === 'asc') {
-          body.order_by = 1
+      if (req.body.order && req.body.order !== '') {
+        if (req.body.order === 'asc') {
+          req.body.order_by = 1
         } else {
-          body.order_by = -1
+          req.body.order_by = -1
         }
       }
-      if (!_.isUndefined(body.sort) && body.sort !== '') {
-        body.sort_by = body.sort
+      if (req.body.sort && req.body.sort !== '') {
+        req.body.sort_by = req.body.sort
       }
 
       let sorting = {
-        [body.sort_by]: body.order_by
+        [req.body.sort_by]: req.body.order_by
       }
 
       let search = ''
-      if (body.search) {
-        search = body.search.replace(/\\/g, '\\\\')
+      if (req.body.search) {
+        search = req.body.search.replace(/\\/g, '\\\\')
           .replace(/\$/g, '\\$')
           .replace(/\*/g, '\\*')
           .replace(/\+/g, '\\+')
@@ -283,43 +245,29 @@ class User {
       }
 
       UserModel.aggregate([
+        { $sort: sorting },
         {
-          $sort: sorting
-        },
-        {
-          '$match': {
+          $match: {
             $or: [
               { sEmail: { $regex: new RegExp('^.*' + search + '.*', 'i') } }
             ]
           }
         },
-        {
-          '$match': {
-            eStatus: { '$ne': 'd' }
-          }
-        },
+        { $match: { eStatus: { '$ne': 'd' } } },
         {
           $group: {
             _id: 0,
-            count: {
-              $sum: 1
-            },
-            document: {
-              $push: '$$ROOT'
-            }
+            count: { $sum: 1 },
+            document: { $push: '$$ROOT' }
           }
         },
-        {
-          $unwind: '$document'
-        },
-        { '$limit': parseInt(start) + parseInt(limit) },
-        { '$skip': parseInt(start) },
+        { $unwind: '$document' },
+        { $limit: parseInt(req.body.nStart) + parseInt(req.body.nLimit) },
+        { $skip: parseInt(req.body.nStart) },
         {
           $group: {
             _id: 0,
-            total: {
-              $first: '$count'
-            },
+            total: { $first: '$count' },
             results: {
               $push: {
                 _id: '$document._id',
@@ -329,7 +277,7 @@ class User {
                 sCountryCode: { $ifNull: ['$document.sCountryCode', ''] },
                 sMobileNumber: { $ifNull: ['$document.sMobileNumber', ''] },
                 eGender: { $ifNull: ['$document.eGender', ''] },
-                sProfilePicture: { $cond: ['$document.sProfilePicture', { $concat: [`${config.S3_BUCKET_URL}${config.PROFILE_PICTURE_PATH}`, '$document.sProfilePicture'] }, null] },
+                sProfilePicture: { $ifNull: ['$document.sProfilePicture', ''] },
                 dUpdatedAt: { $ifNull: ['$document.dUpdatedAt', ''] },
                 dCreatedAt: { $ifNull: ['$document.dCreatedAt', ''] }
               }
@@ -362,17 +310,12 @@ class User {
     try {
       req.user.aJwtTokens = req.user.aJwtTokens.map((singleToken, i) => {
         if (singleToken.sToken === req.header('Authorization')) {
-          singleToken.sPushToken = req.body.sPushToken
+          singleToken.sPushToken = req.req.body.sPushToken
         }
         return singleToken
       })
-      req.user.save().then(data => {
-        return res.status(status.OK).jsonp({
-          message: messages[req.userLanguage].success
-        })
-      }).catch(error => {
-        return catchError('User.checkAvaliblity', error, req, res)
-      })
+      await req.user.save()
+      return res.status(status.OK).jsonp({ message: messages[req.userLanguage].success })
     } catch (error) {
       return catchError('User.checkAvaliblity', error, req, res)
     }
@@ -393,15 +336,12 @@ class User {
           let params = { Bucket: config.S3_BUCKET_NAME, Key: `profilepictures/${req.user.sProfilePicture}` }
 
           s3.deleteObject(params, (error, data) => {
-            console.log({ error })
+            if (error) console.log({ error })
           })
         }
         req.user.sProfilePicture = req.file.key
-        req.user.save().then(() => {
-          return res.status(status.OK).jsonp({ message: messages[req.userLanguage].image_upload_succ, image: req.file.location })
-        }).catch(error => {
-          return catchError('Users.userProfilePictureUpload', error, res)
-        })
+        await req.user.save()
+        return res.status(status.OK).jsonp({ message: messages[req.userLanguage].image_upload_succ, image: req.file.location })
       })
     } catch (error) {
       return catchError('Users.userProfilePictureUpload', error, res)

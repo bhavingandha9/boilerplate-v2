@@ -26,11 +26,8 @@ const sendmail = function (templateName, data, mailOption) {
   })
 
   let emailBody = ejs.render(template, data)
-
   mailOption.html = emailBody
-
-  let nodeMailerOptions = mailOption
-  return transporter.sendMail(nodeMailerOptions)
+  return transporter.sendMail(mailOption)
 }
 
 const catchError = (name, error, req, res) => {

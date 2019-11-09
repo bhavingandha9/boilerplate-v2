@@ -17,13 +17,9 @@ class Settings {
         dCreatedAt: Date.now()
       })
 
-      newSettings.save().then(data => {
-        return res.status(status.OK).jsonp({
-          message: messages[req.userLanguage].success,
-          data
-        })
-      }).catch(error => {
-        return catchError('Settings.store', error, req, res)
+      return res.status(status.OK).jsonp({
+        message: messages[req.userLanguage].success,
+        data: await newSettings.save()
       })
     } catch (error) {
       return catchError('Settings.store', error, req, res)
@@ -33,18 +29,12 @@ class Settings {
   // get setting by its key
   async get(req, res) {
     try {
-      SettingsModel
-        .findOne({ sKey: req.params.sKey })
-        .lean()
-        .then(data => {
-          if (!data) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'Setting') })
-          return res.status(status.OK).jsonp({
-            message: messages[req.userLanguage].success,
-            data
-          })
-        }).catch(error => {
-          return catchError('Settings.get', error, req, res)
-        })
+      let data = await SettingsModel.findOne({ sKey: req.params.sKey }).lean()
+      if (!data) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'Setting') })
+      return res.status(status.OK).jsonp({
+        message: messages[req.userLanguage].success,
+        data
+      })
     } catch (error) {
       return catchError('Settings.get', error, req, res)
     }
@@ -58,18 +48,13 @@ class Settings {
         dUpdatedAt: Date.now()
       }
       removenull(params)
-      SettingsModel
-        .findOneAndUpdate({ sKey: req.params.sKey }, { $set: params }, { new: true })
-        .then(data => {
-          if (!data) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'Setting') })
+      let data = await SettingsModel.findOneAndUpdate({ sKey: req.params.sKey }, { $set: params }, { new: true })
+      if (!data) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'Setting') })
 
-          return res.status(status.OK).jsonp({
-            message: messages[req.userLanguage].updated_succ.replace('##', 'Page'),
-            data
-          })
-        }).catch(error => {
-          return catchError('Settings.update', error, req, res)
-        })
+      return res.status(status.OK).jsonp({
+        message: messages[req.userLanguage].updated_succ.replace('##', 'Page'),
+        data
+      })
     } catch (error) {
       return catchError('Settings.update', error, req, res)
     }
@@ -78,18 +63,12 @@ class Settings {
   // list all the settings
   async list(req, res) {
     try {
-      SettingsModel
-        .find({}, { __v: 0, dCreatedAt: 0, dUpdatedAt: 0 })
-        .lean()
-        .then(data => {
-          if (!data) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'Setting') })
-          return res.status(status.OK).jsonp({
-            message: messages[req.userLanguage].success,
-            data
-          })
-        }).catch(error => {
-          return catchError('Settings.list', error, req, res)
-        })
+      let data = await SettingsModel.find({}, { __v: 0, dCreatedAt: 0, dUpdatedAt: 0 }).lean()
+      if (!data) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'Setting') })
+      return res.status(status.OK).jsonp({
+        message: messages[req.userLanguage].success,
+        data
+      })
     } catch (error) {
       return catchError('Settings.list', error, req, res)
     }
@@ -98,13 +77,10 @@ class Settings {
   // remove a setting
   async remove(req, res) {
     try {
-      SettingsModel.findOneAndRemove({ sKey: req.params.sKey }).then(data => {
-        if (!data) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'Setting') })
+      let data = await SettingsModel.findOneAndRemove({ sKey: req.params.sKey })
+      if (!data) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'Setting') })
 
-        return res.status(status.OK).jsonp({ message: messages[req.userLanguage].success })
-      }).catch(error => {
-        return catchError('Settings.remove', error, req, res)
-      })
+      return res.status(status.OK).jsonp({ message: messages[req.userLanguage].success })
     } catch (error) {
       return catchError('Settings.remove', error, req, res)
     }
@@ -113,15 +89,10 @@ class Settings {
   // render the CMS by its key
   async renderByKey(req, res) {
     try {
-      SettingsModel
-        .findOne({ sKey: req.params.sKey })
-        .lean()
-        .then(data => {
-          if (!data) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'Setting') })
-          return res.status(status.OK).set('Content-Type', 'text/html').send(data.sValue)
-        }).catch(error => {
-          return catchError('Settings.get', error, req, res)
-        })
+      let data = await SettingsModel.findOne({ sKey: req.params.sKey }).lean()
+
+      if (!data) return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'Setting') })
+      return res.status(status.OK).set('Content-Type', 'text/html').send(data.sValue)
     } catch (error) {
       return catchError('Settings.renderByKey', error, req, res)
     }
