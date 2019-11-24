@@ -21,10 +21,7 @@ const removenull = (obj) => {
 }
 
 const sendmail = function (templateName, data, mailOption) {
-  let template = fs.readFileSync(config.EMAIL_TEMPLATE_PATH + templateName, {
-    encoding: 'utf-8' // Unicode Transformation Format (UTF).
-  })
-
+  let template = fs.readFileSync(config.EMAIL_TEMPLATE_PATH + templateName, { encoding: 'utf-8' })
   let emailBody = ejs.render(template, data)
   mailOption.html = emailBody
   return transporter.sendMail(mailOption)

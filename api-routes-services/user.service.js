@@ -112,15 +112,12 @@ class User {
                 message: messages[req.userLanguage].user_save_succ,
                 data
               })
-            }).catch(error => {
+            }).catch(async (error) => {
               console.log(error)
               errorLogs.write(new Date().toString() + error + '\r\n')
-              data.remove().then(() => {
-                return res.status(status.InternalServerError).jsonp({
-                  message: messages[req.userLanguage].mail_fail_user_succ
-                })
-              }).catch(error => {
-                return catchError('User.store', error, req, res)
+              await data.remove()
+              return res.status(status.InternalServerError).jsonp({
+                message: messages[req.userLanguage].mail_fail_user_succ
               })
             })
         } else {
@@ -153,9 +150,7 @@ class User {
       if (!data) {
         return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
       }
-      if (data.sProfilePicture) {
-        data.sProfilePicture = `${config.S3_BUCKET_URL}${config.PROFILE_PICTURE_PATH}/${data.sProfilePicture}`
-      }
+
       return res.status(status.OK).jsonp({
         message: messages[req.userLanguage].user_get_succ,
         data
@@ -181,9 +176,7 @@ class User {
       if (!data) {
         return res.status(status.Locked).jsonp({ message: messages[req.userLanguage].not_found.replace('##', 'User') })
       }
-      if (data.sProfilePicture) {
-        data.sProfilePicture = `${config.S3_BUCKET_URL}/profilepictures/${data.sProfilePicture}`
-      }
+
       return res.status(status.OK).jsonp({
         message: messages[req.userLanguage].user_update_succ,
         data
@@ -201,9 +194,7 @@ class User {
       }
       data.eStatus = 'd'
       data = await data.save()
-      return res.status(status.OK).jsonp({
-        message: messages[req.userLanguage].user_remove_succ
-      })
+      return res.status(status.OK).jsonp({ message: messages[req.userLanguage].user_remove_succ })
     } catch (error) {
       return catchError('User.remove', error, req, res)
     }

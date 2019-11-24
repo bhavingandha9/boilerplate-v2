@@ -1,6 +1,3 @@
-/**
- * node modules import.
- */
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const express = require('express')
@@ -10,17 +7,11 @@ const path = require('path')
 const helmet = require('helmet')
 const morgan = require('morgan')
 const fs = require('fs')
-const authService = require('./api-routes-services/auth.service')
 
-/**
- * internal modules/files import
- */
+const authService = require('./api-routes-services/auth.service')
 const adminRoutes = require('./api-routes-services/admin.routes')
 const config = require('./config')
 
-/**
- * middlewares or confiurations
- */
 const app = express()
 const logFile = fs.createWriteStream('./access.log', { flags: 'a' })
 const errorLogs = fs.createWriteStream(path.join(__dirname, 'error.log'), { flags: 'a' })
@@ -41,9 +32,7 @@ app.use((req, res, next) => {
   next()
 })
 app.set('view engine', 'ejs')
-/**
- * mongoose connection (url from config/env)
- */
+
 mongoose.connect(config.DB_URL, { promiseLibrary: global.Promise, useNewUrlParser: true })
   .then(() => console.log('Connected to database..'))
   .catch(error => {
@@ -53,20 +42,14 @@ mongoose.connect(config.DB_URL, { promiseLibrary: global.Promise, useNewUrlParse
 
 // mongoose.set('debug', true)
 
-/**
- * routes mapping
- */
 app.use('/api/v1/admin', adminRoutes)
 app.get('/user/reset/:sVerificationToken', authService.reset)
 app.get('/user/linkTimeout', authService.linkTimeout)
 
-app.get('/temp', (req, res) => {
-  return res.status(404).jsonp({ message: 'success' })
-})
-
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '/public/404.html'))
 })
+
 app.listen(config.PORT, () => {
   console.log('Magic happens on port :' + config.PORT)
 })

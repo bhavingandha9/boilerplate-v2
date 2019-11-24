@@ -17,15 +17,13 @@ class Auth {
       let query = { $or: [] }
       if (req.body.sEmail) {
         req.body.sEmail = req.body.sEmail.toLowerCase()
-        if (publicEmailClients.includes(req.body.sEmail.split('@')[1]) && config.PUBLIC_EMAIL_BLOCK) {
+        if (config.PUBLIC_EMAIL_BLOCK && publicEmailClients.includes(req.body.sEmail.split('@')[1])) {
           return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].public_email_not_allowed })
         }
       }
 
       if (!req.body.sEmail && !(req.body.sMobileNumber && req.body.sCountryCode)) {
-        return res.status(status.BadRequest).jsonp({
-          message: messages[req.userLanguage].req_email_number
-        })
+        return res.status(status.BadRequest).jsonp({ message: messages[req.userLanguage].req_email_number })
       }
       if (req.body.sEmail) query.$or.push({ sEmail: req.body.sEmail })
       if (req.body.sMobileNumber && req.body.sCountryCode) query.$or.push({ sMobileNumber: req.body.sMobileNumber, sCountryCode: req.body.sCountryCode })
@@ -92,10 +90,11 @@ class Auth {
       }
 
       let data = await user.save()
+      userModel.filterData(data)
       return res.status(status.OK).jsonp({
         message: messages[req.userLanguage].succ_login,
         Authorization: newToken.sToken,
-        userId: data._id
+        data
       })
     } catch (error) {
       return catchError('Auth.adminLogin', error, req, res)
@@ -114,14 +113,14 @@ class Auth {
       let user = await userModel.aggregate([
         {
           $addFields: {
-            'newMob': {
+            newMob: {
               $concat: ['$sCountryCode', '$sMobileNumber']
             }
           }
         },
         {
           $addFields: {
-            'mobSubtring': { $substr: ['$newMob', 1, -1] }
+            mobSubtring: { $substr: ['$newMob', 1, -1] }
           }
         },
         {
@@ -230,7 +229,7 @@ class Auth {
 
       user.sVerificationToken = jwt.sign({ _id: (user._id).toHexString() }, config.JWT_SECRET, { expiresIn: config.JWT_VALIDITY })
       let data = await user.save()
-      sendmail('forgot_password_mail.html',
+      await sendmail('forgot_password_mail.html',
         {
           SITE_NAME: config.SITE_NAME,
           SITE_LOGO: `${config.MAIL_HOST_LINK}/${config.SITE_IMAGE}`,
@@ -241,11 +240,7 @@ class Auth {
           to: data.sEmail,
           subject: 'Forgot Password'
         })
-        .then(() => {
-          return res.status(status.OK).jsonp({ message: messages[req.userLanguage].succ_mail_sent })
-        }).catch(error => {
-          return catchError('Auth.forgotPasswordMail', error, req, res)
-        })
+      return res.status(status.OK).jsonp({ message: messages[req.userLanguage].succ_mail_sent })
     } catch (error) {
       return catchError('Auth.forgotPasswordMail', error, req, res)
     }
