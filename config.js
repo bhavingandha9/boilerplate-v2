@@ -40,7 +40,9 @@ const dev = {
   MANGOPAY_FEES_PERCENTAGE: 1,
   ADMIN_FEES_PERCENTAGE: 0,
   ADMIN_FEES_FIXED: 0,
-  CONTACT_EMAIL: 'admin@boilerplate.com'
+  CONTACT_EMAIL: 'admin@boilerplate.com',
+  REDIS_HOST: 'localhost',
+  REDIS_PORT: 6379
 }
 
 const prod = {
@@ -83,6 +85,8 @@ const prod = {
   MANGOPAY_FEES_PERCENTAGE: 1,
   ADMIN_FEES_PERCENTAGE: 0,
   ADMIN_FEES_FIXED: 0,
-  CONTACT_EMAIL: 'admin@boilerplate.com'
+  CONTACT_EMAIL: 'admin@boilerplate.com',
+  REDIS_HOST: process.env.REDIS_HOST || 'localhost',
+  REDIS_PORT: process.env.REDIS_PORT || 6379
 }
 module.exports = (process.env.NODE_ENV === 'production') ? prod : dev

@@ -8,8 +8,8 @@ const helmet = require('helmet')
 const morgan = require('morgan')
 const fs = require('fs')
 
-const authService = require('./api-routes-services/auth.service')
-const adminRoutes = require('./api-routes-services/admin.routes')
+const authService = require('./api-services/auth.service')
+const adminRoutes = require('./routes/admin.routes')
 const config = require('./config')
 
 const app = express()
